@@ -4,8 +4,8 @@ from werkzeug.security import generate_password_hash
 from datetime import datetime, timezone
 
 with app.app_context():
-    db.drop_all
-    db.create_all
+    db.drop_all()
+    db.create_all()
 
     user1 = User(username='piarda', password_hash=generate_password_hash('password123'))
     user2 = User(username='nywah', password_hash=generate_password_hash('password456'))

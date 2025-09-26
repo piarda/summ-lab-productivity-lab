@@ -22,6 +22,11 @@ def create_bet():
     if not event or amount is None or odds is None:
         return jsonify({"error": "event, amount, and odds are required"}), 400
     
+    if amount <= 0:
+        return jsonify({"error": "Amount must be positive"}), 400
+    if odds <= 0:
+        return jsonify({"error": "Odds must be positive"}), 400
+
     try:
         if date_str:
             date = datetime.fromisoformat(date_str)
@@ -122,9 +127,17 @@ def update_bet(id):
     
     data = request.get_json()
 
+    amount = data.get('amount')
+    odds = data.get('odds')
+
+    if amount is not None and amount <= 0:
+        return jsonify({"error": "Amount must be positive"}), 400
+    if odds is not None and odds <= 0:
+        return jsonify({"error": "Odds must be positive"}), 400
+
     bet.event = data.get('event', bet.event)
-    bet.amount = data.get('amount', bet.amount)
-    bet.odds = data.get('odds', bet.odds)
+    bet.amount = amount if amount is not None else bet.amount
+    bet.odds = odds if odds is not None else bet.odds
     bet.result = data.get('result', bet.result)
 
     date_str = data.get('date')
