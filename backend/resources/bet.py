@@ -60,21 +60,35 @@ def create_bet():
 @jwt_required()
 def get_bets():
     user_id = int(get_jwt_identity())
-    bets = Bet.query.filter_by(user_id=user_id).all()
 
-    return jsonify([
-        {
-            "id": bet.id,
-            "event": bet.event,
-            "amount": bet.amount,
-            "odds": bet.odds,
-            "result": bet.result,
-            "date": bet.date.isoformat(),
-            "bet_type": bet.bet_type,
-            "sport": bet.sport,
-            "payout": bet.payout
-        } for bet in bets
-    ])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 5, type=int)
+
+    paginated = Bet.query.filter_by(user_id=user_id).paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
+
+    return jsonify({
+        "bets": [
+            {
+                "id": bet.id,
+                "event": bet.event,
+                "amount": bet.amount,
+                "odds": bet.odds,
+                "result": bet.result,
+                "date": bet.date.isoformat(),
+                "bet_type": bet.bet_type,
+                "sport": bet.sport,
+                "payout": bet.payout
+            } for bet in paginated.items
+        ],
+        "page": paginated.page,
+        "per_page": paginated.per_page,
+        "total_bets": paginated.total,
+        "total_pages": paginated.pages
+    })
 
 @bet_bp.route('/<int:id>', methods=['GET'])
 @jwt_required()
@@ -97,9 +111,9 @@ def get_bet(id):
         "payout": bet.payout
     })
 
-@bet_bp.route('/<int:id>', methods=['PUT'])
+@bet_bp.route('/<int:id>', methods=['PATCH'])
 @jwt_required()
-def update_net(id):
+def update_bet(id):
     user_id = int(get_jwt_identity())
     bet = Bet.query.filter_by(id=id, user_id=user_id).first()
 
